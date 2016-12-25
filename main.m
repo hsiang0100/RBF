@@ -21,16 +21,16 @@ alpha=1.0;
 %=======two hidden layer=======
 si = [0 0 0 0 0 0 0 0 0]';
 oi = [0 0 0 0 0 0 0 0 0 1]';
-sj = [0 0 0 0 0]';
-oj = [0 0 0 0 0 1]';
+sj = [0 0 0 0 0 0]';
+oj = [0 0 0 0 0 0 1]';
 sk = [0 0 0]';
 ok = [0 0 0]';
 dk = [0 0 0]';
 ninpdim1=9;
 nhid1_input=9;
 nhid1_output=10;
-nhid2_input=5;
-nhid2_output=6;
+nhid2_input=6;
+nhid2_output=7;
 noutdim=3;
 %==========Initial eight cluster==========
 [dataset_rand,dataset_sort] = initial_data();
@@ -93,14 +93,20 @@ for i=1:length(dataset_region)
         sigma=center(j,3);
         response_region(i,j)=gaussian(x,mu,sigma);
     end
+    if response_region_to_propotion(i, :) <=0.00001
+        response_region_to_propotion(i,1:8) = response_region(i, :)/sum(response_region(i, :));
+    else
+        response_region_to_propotion(i,1:8) = response_region(i, :);
+    end
 end
+
 figure;
 hold on;
 axis([-2, 3, -1, 3]);
 
 for index=1:1:2040
 %==========two hidden layer==========
-    ob=[response_region(index,1:8) 1]';
+    ob=[response_region_to_propotion(index,1:8) 1]';
     for i=1:nhid1_input
         si(i)=wib(i,:)*ob;
         oi(i)=1/(1+exp(-si(i)));
@@ -115,6 +121,7 @@ for index=1:1:2040
         sk(k)=wkj(k,:)*oj;
         ok(k)=1/(1+exp(-sk(k)));
     end
+    result(1:3,index)=ok;
 %==========one hidden layer==========
 %     oi=[response_region(index,1:8) 1]';
 % 
@@ -132,7 +139,7 @@ for index=1:1:2040
         plot(dataset_region(index,1),dataset_region(index,2), 'r .');
     elseif ok(2,1)>0.5
         plot(dataset_region(index,1),dataset_region(index,2), 'g .');
-    elseif ok(3,1)>0.90
+    elseif ok(3,1)>0.5
         plot(dataset_region(index,1),dataset_region(index,2), 'b .');
     end
     hold on;
